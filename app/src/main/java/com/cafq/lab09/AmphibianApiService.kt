@@ -3,6 +3,6 @@
 import retrofit2.http.GET
 
 interface AmphibianApiService {
-    @GET("amphibians.json")
+    @GET("amphibians")
     suspend fun getAmphibians(): List<AmphibianModel>
 }
