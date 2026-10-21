@@ -50,7 +50,7 @@ fun ProgPrincipal9() {
     val servicioRecipes = retrofitRecipes.create(RecipeApiService::class.java)
 
     val retrofitAmphibians = Retrofit.Builder()
-        .baseUrl("https://developer.android.com/courses/pathways/android-basics-compose-unit-5-pathway-2/")
+        .baseUrl("https://raw.githubusercontent.com/google-developer-training/basic-android-kotlin-compose-amphibians-app/main/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     val servicioAmphibians = retrofitAmphibians.create(AmphibianApiService::class.java)
