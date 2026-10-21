@@ -1,4 +1,4 @@
-﻿package com.example.lab09
+﻿package com.cafq.lab09
 
 import android.util.Log
 import androidx.compose.foundation.layout.*

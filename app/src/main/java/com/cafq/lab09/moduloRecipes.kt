@@ -1,4 +1,4 @@
-﻿package com.example.lab09
+﻿package com.cafq.lab09
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
