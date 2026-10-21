@@ -50,7 +50,7 @@ fun ProgPrincipal9() {
     val servicioRecipes = retrofitRecipes.create(RecipeApiService::class.java)
 
     val retrofitAmphibians = Retrofit.Builder()
-        .baseUrl("https://android-tasks-api.fitnessview.workers.dev/")
+        .baseUrl("https://developer.android.com/courses/pathways/android-basics-compose-unit-5-pathway-2/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     val servicioAmphibians = retrofitAmphibians.create(AmphibianApiService::class.java)
