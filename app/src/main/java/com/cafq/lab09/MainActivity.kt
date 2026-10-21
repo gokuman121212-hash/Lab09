@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -43,11 +43,11 @@ fun ProgPrincipal9() {
         .build()
     val servicioPosts = retrofitPosts.create(PostApiService::class.java)
 
-    val retrofitRecipes = Retrofit.Builder()
+    val retrofitProducts = Retrofit.Builder()
         .baseUrl("https://dummyjson.com/")
         .addConverterFactory(GsonConverterFactory.create())
         .build()
-    val servicioRecipes = retrofitRecipes.create(RecipeApiService::class.java)
+    val servicioProducts = retrofitProducts.create(ProductApiService::class.java)
 
     val retrofitAmphibians = Retrofit.Builder()
         .baseUrl("https://amphibians-api.free.beeceptor.com/")
@@ -60,7 +60,7 @@ fun ProgPrincipal9() {
     Scaffold(
         topBar = { BarraSuperior() },
         bottomBar = { BarraInferior(navController) },
-        content = { pv -> Contenido(pv, navController, servicioPosts, servicioRecipes, servicioAmphibians) }
+        content = { pv -> Contenido(pv, navController, servicioPosts, servicioProducts, servicioAmphibians) }
     )
 }
 
@@ -75,24 +75,35 @@ fun BarraSuperior() {
 
 @Composable
 fun BarraInferior(navController: NavHostController) {
+    var pestañaSeleccionada by remember { mutableStateOf(0) }
+
     NavigationBar(containerColor = Color.LightGray) {
         NavigationBarItem(
             icon = { Icon(Icons.Outlined.Home, contentDescription = "Posts") },
             label = { Text("Inicio") },
-            selected = true,
-            onClick = { navController.navigate("posts") }
+            selected = pestañaSeleccionada == 0,
+            onClick = {
+                pestañaSeleccionada = 0
+                navController.navigate("posts")
+            }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Outlined.List, contentDescription = "Recetas") },
-            label = { Text("Recetas") },
-            selected = false,
-            onClick = { navController.navigate("recipes") }
+            icon = { Icon(Icons.Outlined.ShoppingCart, contentDescription = "Catálogo Autos") },
+            label = { Text("Autos") },
+            selected = pestañaSeleccionada == 1,
+            onClick = {
+                pestañaSeleccionada = 1
+                navController.navigate("autos")
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Outlined.Face, contentDescription = "Anfibios") },
             label = { Text("Anfibios") },
-            selected = false,
-            onClick = { navController.navigate("amphibians") }
+            selected = pestañaSeleccionada == 2,
+            onClick = {
+                pestañaSeleccionada = 2
+                navController.navigate("amphibians")
+            }
         )
     }
 }
@@ -102,7 +113,7 @@ fun Contenido(
     pv: PaddingValues,
     navController: NavHostController,
     servicioPosts: PostApiService,
-    servicioRecipes: RecipeApiService,
+    servicioProducts: ProductApiService,
     servicioAmphibians: AmphibianApiService
 ) {
     Box(modifier = Modifier.fillMaxSize().padding(pv)) {
@@ -111,9 +122,9 @@ fun Contenido(
             composable("postsVer/{id}", arguments = listOf(navArgument("id") { type = NavType.IntType })) {
                 ScreenPost(navController, servicioPosts, it.arguments!!.getInt("id"))
             }
-            composable("recipes") { ScreenRecipes(navController, servicioRecipes) }
-            composable("recipeVer/{id}", arguments = listOf(navArgument("id") { type = NavType.IntType })) {
-                ScreenRecipeDetail(navController, servicioRecipes, it.arguments!!.getInt("id"))
+            composable("autos") { ScreenAutos(navController, servicioProducts) }
+            composable("autoVer/{id}", arguments = listOf(navArgument("id") { type = NavType.IntType })) {
+                ScreenAutoDetail(navController, servicioProducts, it.arguments!!.getInt("id"))
             }
             composable("amphibians") { ScreenAmphibians(servicioAmphibians) }
         }

@@ -21,22 +21,27 @@ import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 
 @Composable
-fun ScreenRecipes(navController: NavHostController, servicio: RecipeApiService) {
-    val listaAutos: SnapshotStateList<RecipeModel> = remember { mutableStateListOf() }
+fun ScreenAutos(navController: NavHostController, servicio: ProductApiService) {
+    val listaAutos: SnapshotStateList<ProductModel> = remember { mutableStateListOf() }
     var textoBusqueda by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
-        val respuesta = servicio.getRecipes()
-        respuesta.recipes.forEach { listaAutos.add(it) }
+        try {
+            val respuesta = servicio.getProducts()
+            listaAutos.clear()
+            respuesta.products.forEach { listaAutos.add(it) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     val autosFiltrados = listaAutos.filter {
-        it.name.contains(textoBusqueda, ignoreCase = true) ||
-        it.cuisine.contains(textoBusqueda, ignoreCase = true)
+        it.title.contains(textoBusqueda, ignoreCase = true) ||
+        it.category.contains(textoBusqueda, ignoreCase = true) ||
+        (it.brand != null && it.brand.contains(textoBusqueda, ignoreCase = true))
     }
 
     Column(modifier = Modifier.fillMaxSize().padding(8.dp)) {
-        // Buscador para el catálogo automotriz
         OutlinedTextField(
             value = textoBusqueda,
             onValueChange = { textoBusqueda = it },
@@ -61,8 +66,8 @@ fun ScreenRecipes(navController: NavHostController, servicio: RecipeApiService) 
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         AsyncImage(
-                            model = auto.image,
-                            contentDescription = auto.name,
+                            model = auto.thumbnail,
+                            contentDescription = auto.title,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(95.dp)
@@ -71,19 +76,18 @@ fun ScreenRecipes(navController: NavHostController, servicio: RecipeApiService) 
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = auto.name,
+                                text = auto.title,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(4.dp))
 
-                            // Badge del tipo/estilo de vehículo
                             Surface(
                                 color = MaterialTheme.colorScheme.tertiaryContainer,
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    text = auto.cuisine,
+                                    text = auto.brand ?: auto.category,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer
@@ -92,7 +96,6 @@ fun ScreenRecipes(navController: NavHostController, servicio: RecipeApiService) 
 
                             Spacer(modifier = Modifier.height(4.dp))
 
-                            // Puntuación / Garantía
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
@@ -102,14 +105,14 @@ fun ScreenRecipes(navController: NavHostController, servicio: RecipeApiService) 
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
-                                    text = "${auto.rating} / 5.0 (Garantía de fábrica)",
+                                    text = "${auto.rating} / 5.0 - $${auto.price}",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         }
 
                         IconButton(
-                            onClick = { navController.navigate("recipeVer/${auto.id}") }
+                            onClick = { navController.navigate("autoVer/${auto.id}") }
                         ) {
                             Icon(imageVector = Icons.Outlined.Search, contentDescription = "Ver vehículo")
                         }
@@ -121,11 +124,15 @@ fun ScreenRecipes(navController: NavHostController, servicio: RecipeApiService) 
 }
 
 @Composable
-fun ScreenRecipeDetail(navController: NavHostController, servicio: RecipeApiService, id: Int) {
-    var auto by remember { mutableStateOf<RecipeModel?>(null) }
+fun ScreenAutoDetail(navController: NavHostController, servicio: ProductApiService, id: Int) {
+    var auto by remember { mutableStateOf<ProductModel?>(null) }
 
     LaunchedEffect(Unit) {
-        auto = servicio.getRecipeById(id)
+        try {
+            auto = servicio.getProductById(id)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     Column(
@@ -135,8 +142,8 @@ fun ScreenRecipeDetail(navController: NavHostController, servicio: RecipeApiServ
     ) {
         auto?.let { a ->
             AsyncImage(
-                model = a.image,
-                contentDescription = a.name,
+                model = a.thumbnail,
+                contentDescription = a.title,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -144,7 +151,7 @@ fun ScreenRecipeDetail(navController: NavHostController, servicio: RecipeApiServ
                     .clip(RoundedCornerShape(16.dp))
             )
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = a.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text(text = a.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
 
             Row(
                 modifier = Modifier.padding(vertical = 8.dp),
@@ -155,7 +162,7 @@ fun ScreenRecipeDetail(navController: NavHostController, servicio: RecipeApiServ
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = "Categoría: ${a.cuisine}",
+                        text = "Marca: ${a.brand ?: "General"}",
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -166,18 +173,14 @@ fun ScreenRecipeDetail(navController: NavHostController, servicio: RecipeApiServ
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            Text(text = "Equipamiento y Características:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = "Precio del Vehículo:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            a.ingredients.forEach { item ->
-                Text(text = "• $item", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
-            }
+            Text(text = "$${a.price} USD", style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary)
 
             Spacer(modifier = Modifier.height(12.dp))
-            Text(text = "Especificaciones Técnicas:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = "Descripción y Especificaciones:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(4.dp))
-            a.instructions.forEachIndexed { index, paso ->
-                Text(text = "${index + 1}. $paso", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 2.dp))
-            }
+            Text(text = a.description, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
